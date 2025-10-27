@@ -1,0 +1,37 @@
+# .github/workflows/devsecops-scan.yml
+name: DevSecOps Demo - Scan de Vulnerabilités
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  security-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+      
+    # 🚨 ETAPE DEVSECOPS : SCAN DE VULNERABILITÉS
+    - name: Run Trivy Vulnerability Scan (FAIL ATTENDU)
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'  # Scanne le système de fichiers (le code et les dépendances)
+        scan-ref: '.'
+        format: 'table'
+        # POLICY AS CODE : Le scan s'arrête si HIGH ou CRITICAL est trouvé (exit-code 1)
+        severity: 'CRITICAL,HIGH'
+        exit-code: '1' 
+        vuln-type: 'library'
+
+    - name: Deployment Step (Ne doit pas être exécuté si le scan échoue)
+      run: echo "✅ DEPLOIEMENT REUSSI ET SECURISÉ !"
